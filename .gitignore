@@ -1,0 +1,30 @@
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# PostgreSQL
+*.pgsql
+*.backup
+*.dump
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Excel files (if sensitive)
+# *.xlsx
+# *.xls
