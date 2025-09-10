@@ -381,7 +381,4 @@ This database represents realistic Washington State budget data with:
    - Time-series analysis for trends
    - Data quality assessment
    - Performance metric development
-
-Start with basic exploration queries, then build up to complex
-variance analysis. Focus on questions a legislator might ask!
 */
