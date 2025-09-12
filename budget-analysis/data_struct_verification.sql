@@ -1,13 +1,12 @@
---================================================================================
+--======================================================================================
 --TASK 1.2: State budget database structure analysis
 --PURPOSE: Data validation and analysis of database structure
---================================================================================
+--======================================================================================
 
---=====================================================
+
 -- QUERY: budget_data_structure
--- PURPOSE: General overview of database structure,
--- selects all tables, columns & shows data type
---=====================================================
+-- PURPOSE: General overview of database structure, selects all tables, columns & shows data type
+
 SELECT 
     table_name,
     column_name,
@@ -17,10 +16,26 @@ FROM information_schema.columns
 WHERE table_schema = 'public'
 ORDER BY table_name, ordinal_position;
 
---=====================================================
+SELECT 
+    COUNT(DISTINCT table_name) AS num_tables
+FROM information_schema.columns 
+WHERE table_schema = 'public';
+
+--ANALYSIS: 
+-- 11 tables with 6 tables containing macro/structural data and 5 tables containing micro fund information
+-- actual_expenditures : contains expenditure_date and processed_date - difference may be important in calculations
+-- agencies: divided by cabinet_area, fte_authorized important for labor budget analysis 
+-- budget_allocations : multiple foreign keys, potential join point
+-- revenue_collections: source_agency_id 
+-- clear foreign key structure, most used foreign key agency_id and category_id
+
+
+
+
+--=====================================================================================
 -- QUERY: table_row_count
 -- PURPOSE: verify count for tables, approximate size
---=====================================================
+--=====================================================================================
 
 SELECT 'agencies' as table_name, COUNT(*) as row_count FROM agencies
 UNION ALL
@@ -37,13 +52,13 @@ UNION ALL
 SELECT 'revenue_collections', COUNT(*) FROM revenue_collections
 ORDER BY table_name;
 
---=====================================================
--- QUERY: table_row_count
--- PURPOSE: verify count for tables, approximate size
---=====================================================
+--====================================================================================
+-- QUERY: proj_execution_rate
+-- PURPOSE: Using Q1 actual budget data, calculate 
+-- if agencies continue to spend at same rate, what 
+-- percentage of their budget will they use?
+--====================================================================================
 
-
--- Verify budget vs. actual data relationships
 SELECT 
     a.agency_name,
     SUM(ba.budgeted_amount) as total_budgeted,
@@ -57,6 +72,14 @@ WHERE ba.fy_id = 2
 GROUP BY a.agency_id, a.agency_name
 ORDER BY total_budgeted DESC
 LIMIT 10;
+
+
+--====================================================================================
+-- QUERY: proj_execution_rate
+-- PURPOSE: Using Q1 actual budget data, calculate 
+-- if agencies continue to spend at same rate, what 
+-- percentage of their budget will they use?
+--====================================================================================
 
 -- Check for data quality issues (missing relationships)
 SELECT 
