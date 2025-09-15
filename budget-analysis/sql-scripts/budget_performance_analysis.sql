@@ -1,21 +1,18 @@
---======================================================================================
---PART 2: State agency budget performance analysis
---PURPOSE: 
-
-
 --=====================================================================================
--- QUESTION 1 : Agency Budget Variance Analysis
+--PART 2: STATE AGENCY BUDGET PERFORMANCE ANALYSIS
+--Analyst: Samantha Riesterer
 
--- LEGISLATIVE QUESTION: Which state agencies are consistently over or under budget, 
+-- ===================================================================================
+-- QUESTION 1 : Agency Budget Variance Analysis
+-- Legislative question: Which state agencies are consistently over or under budget, 
 -- and in which spending categories?
 
 -- ===================================================================================
--- QUERY: agency_budget_performance
-
--- TASKS: Calculate budget vs. actual variance by agency for current fiscal year
--- Identify agencies with highest positive and negative variances
--- Calculate variance percentages for comparison across different-sized agencies
-
+-- QUERY 1.1: Overrall agency budget performance
+-- TASKS: 
+-- 1.Calculate budget vs. actual variance by agency for current fiscal year
+-- 2.Identify agencies with highest positive and negative variances
+-- 3.Calculate variance percentages for comparison across different-sized agencies
 
 --retrieve Q1 expenditure data for each agency for fiscal year 2023-2024 
 WITH q1_data AS (
@@ -66,14 +63,14 @@ FROM variance_data vd
 ORDER BY variance_rate DESC;
 
 
---ANALYSIS RESULTS
+-- ANALYSIS RESULTS
 -- Dept. of Commerce approx. 35% over budget as of Q1, projected to be approx.$56.5 million over annual budget 
 -- Every other department under budget as of Q1, with Dept. of L&I approx. 71% under budget
 
---DATA VALIDATION
---total_target values are ~20-25% of total budget 
---variance rates are decimal values 
---positive/negative rates corresponding to over or under budget projections
+-- DATA VALIDATION
+-- total_target values are ~20-25% of total budget 
+-- variance rates are decimal values 
+-- positive/negative rates corresponding to over or under budget projections
 /*
 --Data Validation Test
 SELECT 
@@ -85,4 +82,44 @@ SELECT
    FROM annual_budgets ab
    JOIN q1_data qd ON ab.agency_id = qd.agency_id;
 */
+-- ===================================================================================
+
+-- ===================================================================================
+-- QUERY 1.2: Spending category analysis
+-- TASKS: 
+-- 1.Analyze variances by budget category (personnel, operations, capital, etc.)
+-- 2.Identify which types of spending are most difficult to predict/control
+-- 3.Compare category performance across similar agencies 
+
+--NOTES
+-- SUM() spending for each category (across all agencies)
+-- SUM() spending in categories based on similiar agencies: agency_type
+-- variance consistency: standard deviation of variance rates within each category 
+-- range analysis: min/max variance rates by category 
+-- STDDEV(), AVG(), MIN(), MAX() to analyze patterns.
+
+--aggregate spending by category
+WITH category_spending AS (
+    SELECT 
+        bc.category_type,
+        SUM(ae.amount) AS total_category_spending
+    FROM budget_categories bc
+    JOIN actual_expenditures ae ON bc.category_id = ae.category_id
+    WHERE ae.fy_id = 2
+    GROUP BY bc.category_type    
+)
+
+--retrieve agency data and link to spending & spending category
+agency_data AS (
+    SELECT
+        a.agency_id,
+        a.agency_type,
+        ae.amount, 
+        ae.category_id
+    FROM agencies a 
+    JOIN actual_expenditures ae ON a.agency_id = ae.agency_id
+    WHERE ae.fy_id = 2;
+)
+
+
 
