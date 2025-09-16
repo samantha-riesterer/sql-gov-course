@@ -91,7 +91,7 @@ SELECT
 -- 2.Identify which types of spending are most difficult to predict/control
 -- 3.Compare category performance across similar agencies 
 -- > UPDATE: All agency_types were "Cabinet" for Q1  
--- > adjusted to compare by service line (cabinet_area) 
+-- > adjusted to compare by agency budget size 
 
 --NOTES
 -- Data limited to Q1 FY 2023-2024
@@ -115,13 +115,18 @@ WITH category_spending AS (
 agency_data AS (
     SELECT
         a.agency_id,
+        a.agency_name,
         a.agency_type,
+        a.cabinet_area,
         ae.amount, 
-        ae.category_id
+        ae.category_id,
+        ba.budgeted_amount
     FROM agencies a 
     JOIN actual_expenditures ae ON a.agency_id = ae.agency_id
+    JOIN budget_allocations ba ON a.agency_id = ba.agency_id AND ae.category_id = ba.category_id
     WHERE ae.fy_id = 2
 )
---ISSUE: all agency types are cabinet for q1?
 
-
+--ANALYSIS 
+-- Q: Identify which categories are most/least predictable
+-- Q: How budget size affects category management
