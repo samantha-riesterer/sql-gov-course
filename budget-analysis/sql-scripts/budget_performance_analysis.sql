@@ -62,10 +62,10 @@ SELECT
 FROM variance_data vd
 ORDER BY variance_rate DESC;
 
-
 -- ANALYSIS RESULTS
 -- Dept. of Commerce approx. 35% over budget as of Q1, projected to be approx.$56.5 million over annual budget 
 -- Every other department under budget as of Q1, with Dept. of L&I approx. 71% under budget
+
 
 -- DATA VALIDATION
 -- total_target values are ~20-25% of total budget 
@@ -90,13 +90,15 @@ SELECT
 -- 1.Analyze variances by budget category (personnel, operations, capital, etc.)
 -- 2.Identify which types of spending are most difficult to predict/control
 -- 3.Compare category performance across similar agencies 
+-- > UPDATE: All agency_types were "Cabinet" for Q1  
+-- > adjusted to compare by service line (cabinet_area) 
 
 --NOTES
--- SUM() spending for each category (across all agencies)
--- SUM() spending in categories based on similiar agencies: agency_type
+-- Data limited to Q1 FY 2023-2024
 -- variance consistency: standard deviation of variance rates within each category 
 -- range analysis: min/max variance rates by category 
 -- STDDEV(), AVG(), MIN(), MAX() to analyze patterns.
+
 
 --aggregate spending by category
 WITH category_spending AS (
@@ -118,8 +120,8 @@ agency_data AS (
         ae.category_id
     FROM agencies a 
     JOIN actual_expenditures ae ON a.agency_id = ae.agency_id
-    WHERE ae.fy_id = 2;
+    WHERE ae.fy_id = 2
 )
-
+--ISSUE: all agency types are cabinet for q1?
 
 
