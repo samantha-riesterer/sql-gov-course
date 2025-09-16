@@ -1,15 +1,14 @@
---=====================================================================================
---PART 2: STATE AGENCY BUDGET PERFORMANCE ANALYSIS
---Analyst: Samantha Riesterer
+-- ===================================================================================
+-- PART 2: STATE AGENCY BUDGET PERFORMANCE ANALYSIS
+-- Analyst: Samantha Riesterer
+-- ===================================================================================
 
 -- ===================================================================================
 -- QUESTION 1 : Agency Budget Variance Analysis
 -- Legislative question: Which state agencies are consistently over or under budget, 
 -- and in which spending categories?
-
 -- ===================================================================================
 -- QUERY 1.1: Overrall agency budget performance
--- TASKS: 
 -- 1.Calculate budget vs. actual variance by agency for current fiscal year
 -- 2.Identify agencies with highest positive and negative variances
 -- 3.Calculate variance percentages for comparison across different-sized agencies
@@ -69,7 +68,6 @@ ORDER BY variance_rate DESC;
 
 -- DATA VALIDATION
 -- total_target values are ~20-25% of total budget 
--- variance rates are decimal values 
 -- positive/negative rates corresponding to over or under budget projections
 /*
 --Data Validation Test
@@ -83,33 +81,40 @@ SELECT
    JOIN q1_data qd ON ab.agency_id = qd.agency_id;
 */
 -- ===================================================================================
-
 -- ===================================================================================
 -- QUERY 1.2: Spending category analysis
 -- TASKS: 
 -- 1.Analyze variances by budget category (personnel, operations, capital, etc.)
 -- 2.Identify which types of spending are most difficult to predict/control
 -- 3.Compare category performance across similar agencies (agency_type) 
--- > UPDATE: All agency_types were "Cabinet" for Q1  
--- > adjusted to compare by agency budget size 
-
---NOTES
+-- --> UPDATE: All agency_types were "Cabinet" for Q1, adjusted to agency budget size 
+--NOTES:
 -- Data limited to Q1 FY 2023-2024
 -- variance consistency: standard deviation of variance rates within each category 
 -- range analysis: min/max variance rates by category 
 -- STDDEV(), AVG(), MIN(), MAX() to analyze patterns.
 
+--Pure Category Analysis
 
---aggregate spending by category
+--aggregate spending & Q1 target budget by category for FY 
 WITH category_spending AS (
     SELECT 
-        bc.category_type,
-        SUM(ae.amount) AS total_category_spending
+        bc.category_id,
+        bc.category_name,
+        ae.amount AS actual_spending,
+        ba.quarter_1_target AS target_spending,
+        ae.amount - ba.quarter_1_target AS variance
     FROM budget_categories bc
     JOIN actual_expenditures ae ON bc.category_id = ae.category_id
-    WHERE ae.fy_id = 2
-    GROUP BY bc.category_type    
-),
+    JOIN budget_allocations ba ON bc.category_id = ba.category_id
+    WHERE ae.fy_id = 2   
+)
+--test
+SELECT * FROM category_spending;
+
+
+
+--Category Perforamnce by Agency Size
 
 --retrieve agency data and link to spending, category & budget size
 WITH agency_data AS (
@@ -144,3 +149,9 @@ budget_size AS (
 --ANALYSIS 
 -- Q: Identify which categories are most/least predictable
 -- Q: How budget size affects category management
+
+
+
+
+-- ===================================================================================
+-- ===================================================================================
