@@ -89,7 +89,7 @@ SELECT
 -- TASKS: 
 -- 1.Analyze variances by budget category (personnel, operations, capital, etc.)
 -- 2.Identify which types of spending are most difficult to predict/control
--- 3.Compare category performance across similar agencies 
+-- 3.Compare category performance across similar agencies (agency_type) 
 -- > UPDATE: All agency_types were "Cabinet" for Q1  
 -- > adjusted to compare by agency budget size 
 
@@ -109,23 +109,37 @@ WITH category_spending AS (
     JOIN actual_expenditures ae ON bc.category_id = ae.category_id
     WHERE ae.fy_id = 2
     GROUP BY bc.category_type    
-)
+),
 
---retrieve agency data and link to spending & spending category
-agency_data AS (
+--retrieve agency data and link to spending, category & budget size
+WITH agency_data AS (
     SELECT
         a.agency_id,
         a.agency_name,
-        a.agency_type,
-        a.cabinet_area,
         ae.amount, 
         ae.category_id,
-        ba.budgeted_amount
+        ba.budgeted_amount 
     FROM agencies a 
     JOIN actual_expenditures ae ON a.agency_id = ae.agency_id
     JOIN budget_allocations ba ON a.agency_id = ba.agency_id AND ae.category_id = ba.category_id
     WHERE ae.fy_id = 2
+),
+
+budget_size AS (
+    SELECT
+       ad.agency_id,
+       ad.agency_name,
+       NTILE(3) OVER (ORDER BY SUM(ad.budgeted_amount) DESC) AS budget_size
+    FROM agency_data ad
+    GROUP BY ad.agency_id,agency_name
 )
+
+
+
+--TO DO 
+-- calculate variance 
+-- range analysis
+
 
 --ANALYSIS 
 -- Q: Identify which categories are most/least predictable
