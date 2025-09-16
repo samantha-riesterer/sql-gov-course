@@ -87,35 +87,43 @@ SELECT
 -- 1.Analyze variances by budget category (personnel, operations, capital, etc.)
 -- 2.Identify which types of spending are most difficult to predict/control
 -- 3.Compare category performance across similar agencies (agency_type) 
--- --> UPDATE: All agency_types were "Cabinet" for Q1, adjusted to agency budget size 
+-- --> UPDATE: All agency_types were "Cabinet" for Q1, changed to agency budget size 
 --NOTES:
 -- Data limited to Q1 FY 2023-2024
--- variance consistency: standard deviation of variance rates within each category 
--- range analysis: min/max variance rates by category 
--- STDDEV(), AVG(), MIN(), MAX() to analyze patterns.
+-- variance consistency & range analysis
+
 
 --Pure Category Analysis
-
---aggregate spending & Q1 target budget by category for FY 
+--aggregate spending & Q1 target budget by category-agency for FY 
 WITH category_spending AS (
     SELECT 
         bc.category_id,
         bc.category_name,
-        ae.amount AS actual_spending,
-        ba.quarter_1_target AS target_spending,
-        ae.amount - ba.quarter_1_target AS variance
+        ae.agency_id,
+        SUM(ae.amount) AS actual_spending,
+        SUM(ba.quarter_1_target) AS target_spending,
+       (SUM(ae.amount) - SUM(ba.quarter_1_target)) / SUM(ba.quarter_1_target) AS variance_rate
     FROM budget_categories bc
     JOIN actual_expenditures ae ON bc.category_id = ae.category_id
-    JOIN budget_allocations ba ON bc.category_id = ba.category_id
-    WHERE ae.fy_id = 2   
+    JOIN budget_allocations ba ON bc.category_id = ba.category_id 
+        AND ae.agency_id = ba.agency_id
+    WHERE ae.fy_id = 2 AND ae.quarter = 1  
+    GROUP BY bc.category_id, ae.agency_id
 )
---test
-SELECT * FROM category_spending;
 
-
+-- variance consistency: standard deviation of variance rates within each category 
+-- range analysis: min/max variance rates by category 
+SELECT 
+    category_name,
+   -- ROUND(STDDEV(variance_rate),2) AS std_variance,
+    ROUND(AVG(variance_rate),2) AS avg_variance,
+    ROUND(MIN(variance_rate),2) AS min_variance,
+    ROUND(MAX(variance_rate),2) AS max_variance
+FROM category_spending
+GROUP BY category_name
+ORDER BY min_variance ASC;
 
 --Category Perforamnce by Agency Size
-
 --retrieve agency data and link to spending, category & budget size
 WITH agency_data AS (
     SELECT
@@ -149,6 +157,8 @@ budget_size AS (
 --ANALYSIS 
 -- Q: Identify which categories are most/least predictable
 -- Q: How budget size affects category management
+
+-- 
 
 
 
