@@ -91,6 +91,8 @@ SELECT
 --NOTES:
 -- Data limited to Q1 FY 2023-2024
 -- variance consistency & range analysis
+-- --> UPDATE:not enough data for STDDEV, simplying to range analysis 
+-- --> Keeping STDDEV query work for reference
 
 
 --Pure Category Analysis
@@ -121,7 +123,7 @@ SELECT
     ROUND(MAX(variance_rate),2) AS max_variance
 FROM category_spending
 GROUP BY category_name
-ORDER BY min_variance ASC;
+ORDER BY avg_variance ASC;
 
 --Category Perforamnce by Agency Size
 --retrieve agency data and link to spending, category & budget size
@@ -129,36 +131,53 @@ WITH agency_data AS (
     SELECT
         a.agency_id,
         a.agency_name,
-        ae.amount, 
         ae.category_id,
-        ba.budgeted_amount 
+        bc.category_name,
+        SUM(ae.amount) AS actual_spending,
+        SUM(ba.budgeted_amount) AS total_budget,
+        SUM(ba.quarter_1_target) AS target_spending,
+       (SUM(ae.amount) - SUM(ba.quarter_1_target)) / SUM(ba.quarter_1_target) AS variance_rate
     FROM agencies a 
     JOIN actual_expenditures ae ON a.agency_id = ae.agency_id
-    JOIN budget_allocations ba ON a.agency_id = ba.agency_id AND ae.category_id = ba.category_id
-    WHERE ae.fy_id = 2
+    JOIN budget_allocations ba ON a.agency_id = ba.agency_id 
+        AND ae.category_id = ba.category_id
+    JOIN budget_categories bc ON ae.category_id = bc.category_id
+    WHERE ae.fy_id = 2 AND ae.quarter = 1 
+    GROUP BY a.agency_id,a.agency_name,ae.category_id,bc.category_name
 ),
 
-budget_size AS (
+budget_groups AS (
     SELECT
-       ad.agency_id,
-       ad.agency_name,
-       NTILE(3) OVER (ORDER BY SUM(ad.budgeted_amount) DESC) AS budget_size
+        agency_id,
+        category_id,
+       NTILE(3) OVER (ORDER BY ad.total_budget DESC) AS budget_size
     FROM agency_data ad
-    GROUP BY ad.agency_id,agency_name
 )
+
+SELECT 
+    bg.budget_size,
+    ad.category_name,
+   -- ROUND(STDDEV(variance_rate),2) AS std_variance,
+    ROUND(AVG(ad.variance_rate),2) AS avg_variance,
+    ROUND(MIN(ad.variance_rate),2) AS min_variance,
+    ROUND(MAX(ad.variance_rate),2) AS max_variance
+FROM agency_data ad 
+JOIN budget_groups bg ON ad.category_id = bg.category_id
+    AND ad.agency_id = bg.agency_id
+GROUP BY budget_size,category_name
+ORDER BY budget_size ASC;
 
 
 
 --TO DO 
--- calculate variance 
--- range analysis
+-- fix formatting - display of budget group 
+-- data validation check (is agency-category relationship working correctly)
 
 
 --ANALYSIS 
 -- Q: Identify which categories are most/least predictable
 -- Q: How budget size affects category management
 
--- 
 
 
 
